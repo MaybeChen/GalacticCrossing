@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Galaxy Hopper</title>
+  <style>
+    :root {
+      --bg: #040711;
+      --panel: rgba(10, 16, 34, 0.78);
+      --panel-border: rgba(173, 216, 255, 0.26);
+      --text: #eaf5ff;
+      --muted: #9db8d6;
+      --accent: #63d4ff;
+      --accent-2: #8d7bff;
+      --danger: #ff7285;
+      --shadow: 0 10px 30px rgba(2, 8, 24, 0.55);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(circle at 20% 10%, #0d1739 0%, #050919 45%, #03050f 100%);
+      color: var(--text);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 10px;
+    }
+
+    canvas {
+      width: min(100vw - 20px, 560px);
+      height: min(100vh - 20px, 900px);
+      aspect-ratio: 9 / 16;
+      border-radius: 18px;
+      background: #030710;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(112, 149, 205, 0.24);
+      display: block;
+    }
+
+    .hud {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+      width: min(100vw - 20px, 560px);
+      height: min(100vh - 20px, 900px);
+    }
+
+    .score {
+      margin-top: 6px;
+      font-size: clamp(18px, 3.2vw, 28px);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-shadow: 0 2px 8px rgba(18, 188, 255, 0.32);
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+
+    .score.show { opacity: 1; }
+
+    .overlay {
+      pointer-events: auto;
+      width: min(88%, 390px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      background: var(--panel);
+      backdrop-filter: blur(6px);
+      box-shadow: var(--shadow);
+      padding: 20px 20px 18px;
+      text-align: center;
+      align-self: center;
+    }
+
+    .overlay.hidden { display: none; }
+
+    h1, h2 {
+      margin: 0 0 10px;
+      line-height: 1.15;
+      letter-spacing: 0.04em;
+    }
+
+    h1 { font-size: clamp(28px, 5.2vw, 40px); }
+    h2 { font-size: clamp(24px, 4.4vw, 34px); color: var(--danger); }
+
+    p {
+      margin: 8px 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: clamp(14px, 2.8vw, 17px);
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      margin-top: 14px;
+      padding: 12px 24px;
+      color: #031421;
+      background: linear-gradient(100deg, var(--accent), #6be8ff 45%, #99f0ff);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 140ms ease;
+      box-shadow: 0 8px 22px rgba(99, 212, 255, 0.32);
+    }
+
+    .btn:active { transform: translateY(1px) scale(0.99); }
+
+    .stats {
+      margin-top: 10px;
+      display: grid;
+      gap: 4px;
+      font-size: 15px;
+      color: #d2e9ff;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <canvas id="gameCanvas" aria-label="Galaxy Hopper 游戏画布"></canvas>
+
+    <div class="hud">
+      <div id="scoreText" class="score">SCORE 0</div>
+
+      <section id="startOverlay" class="overlay">
+        <h1>Galaxy Hopper</h1>
+        <p>点击 / 空格 / 触摸，控制飞船向上推进，穿越银河障碍。</p>
+        <p>小心星球、陨石、太空垃圾与残破卫星！</p>
+        <button id="startBtn" class="btn">Start Mission</button>
+      </section>
+
+      <section id="gameoverOverlay" class="overlay hidden">
+        <h2>Game Over</h2>
+        <div class="stats">
+          <div>本局分数：<strong id="finalScore">0</strong></div>
+          <div>历史最高：<strong id="bestScore">0</strong></div>
+        </div>
+        <button id="restartBtn" class="btn">Restart</button>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    class StarBackground {
+      constructor(game) {
+        this.game = game;
+        this.layers = [];
+        this.createLayers();
+      }
+
+      createLayers() {
+        const { width, height } = this.game;
+        this.layers = [0.25, 0.5, 0.9].map((speedFactor, i) => {
+          const count = Math.floor((width * height) / (7000 - i * 1500));
+          const stars = Array.from({ length: count }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * (1.3 + i * 0.6) + 0.4,
+            alpha: Math.random() * 0.5 + 0.35,
+            twinkle: Math.random() * Math.PI * 2,
+          }));
+          return { speedFactor, stars };
+        });
+      }
+
+      resize() { this.createLayers(); }
+
+      update(dt, speed) {
+        for (const layer of this.layers) {
+          const vx = speed * layer.speedFactor * dt;
+          for (const star of layer.stars) {
+            star.x -= vx;
+            star.twinkle += dt * 2;
+            if (star.x < -4) {
+              star.x = this.game.width + 4;
+              star.y = Math.random() * this.game.height;
+            }
+          }
+        }
+      }
+
+      draw(ctx) {
+        const { width, height } = this.game;
+
+        const nebula = ctx.createRadialGradient(width * 0.74, height * 0.2, 20, width * 0.7, height * 0.2, width * 0.8);
+        nebula.addColorStop(0, "rgba(128, 114, 255, 0.20)");
+        nebula.addColorStop(0.55, "rgba(67, 142, 255, 0.14)");
+        nebula.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = nebula;
+        ctx.fillRect(0, 0, width, height);
+
+        const galaxyBand = ctx.createLinearGradient(0, height * 0.3, width, height * 0.65);
+        galaxyBand.addColorStop(0, "rgba(158, 116, 255, 0.07)");
+        galaxyBand.addColorStop(0.5, "rgba(119, 221, 255, 0.10)");
+        galaxyBand.addColorStop(1, "rgba(158, 116, 255, 0.07)");
+        ctx.fillStyle = galaxyBand;
+        ctx.fillRect(0, height * 0.18, width, height * 0.56);
+
+        for (const layer of this.layers) {
+          for (const s of layer.stars) {
+            ctx.globalAlpha = Math.min(1, s.alpha + Math.sin(s.twinkle) * 0.12);
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    class Spaceship {
+      constructor(game) {
+        this.game = game;
+        this.x = game.width * 0.27;
+        this.y = game.height * 0.5;
+        this.w = 52;
+        this.h = 34;
+        this.velocityY = 0;
+      }
+
+      reset() {
+        this.x = this.game.width * 0.27;
+        this.y = this.game.height * 0.5;
+        this.velocityY = 0;
+      }
+
+      flap() {
+        this.velocityY = this.game.config.lift;
+      }
+
+      update(dt) {
+        this.velocityY += this.game.config.gravity * dt;
+        this.velocityY = Math.min(this.velocityY, this.game.config.maxFallSpeed);
+        this.y += this.velocityY * dt;
+      }
+
+      getBounds() {
+        return {
+          left: this.x - this.w * 0.38,
+          right: this.x + this.w * 0.42,
+          top: this.y - this.h * 0.34,
+          bottom: this.y + this.h * 0.34,
+        };
+      }
+
+      draw(ctx) {
+        const tilt = Math.max(-0.42, Math.min(0.35, this.velocityY / 520));
+        const flameBoost = this.velocityY < -170 ? 1.45 : 1;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(tilt);
+
+        const flameLength = 12 + Math.random() * 7 * flameBoost;
+        const flameGradient = ctx.createLinearGradient(-28, 0, -28 - flameLength, 0);
+        flameGradient.addColorStop(0, "rgba(255, 227, 150, 0.95)");
+        flameGradient.addColorStop(0.45, "rgba(255, 125, 70, 0.85)");
+        flameGradient.addColorStop(1, "rgba(128, 60, 255, 0)");
+        ctx.fillStyle = flameGradient;
+        ctx.beginPath();
+        ctx.moveTo(-26, 0);
+        ctx.lineTo(-26 - flameLength, -6);
+        ctx.lineTo(-26 - flameLength * 0.9, 6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "#a9c6ff";
+        ctx.beginPath();
+        ctx.moveTo(-22, -11);
+        ctx.lineTo(14, -14);
+        ctx.quadraticCurveTo(26, 0, 14, 14);
+        ctx.lineTo(-22, 11);
+        ctx.quadraticCurveTo(-30, 0, -22, -11);
+        ctx.fill();
+
+        ctx.fillStyle = "#4f79c8";
+        ctx.beginPath();
+        ctx.moveTo(-8, -16);
+        ctx.lineTo(4, -24);
+        ctx.lineTo(10, -13);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-8, 16);
+        ctx.lineTo(4, 24);
+        ctx.lineTo(10, 13);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "#85f2ff";
+        ctx.beginPath();
+        ctx.ellipse(5, -2, 7.4, 5.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    class Obstacle {
+      constructor(game, x, gapY, gapSize, type) {
+        this.game = game;
+        this.x = x;
+        this.gapY = gapY;
+        this.gapSize = gapSize;
+        this.type = type;
+        this.width = game.config.obstacleWidth;
+        this.passed = false;
+      }
+
+      update(dt, speed) { this.x -= speed * dt; }
+      isOffScreen() { return this.x + this.width < -30; }
+
+      collides(bounds) {
+        const left = this.x;
+        const right = this.x + this.width;
+        if (bounds.right < left || bounds.left > right) return false;
+
+        const topBottom = this.gapY - this.gapSize / 2;
+        const bottomTop = this.gapY + this.gapSize / 2;
+        return bounds.top < topBottom || bounds.bottom > bottomTop;
+      }
+
+      draw(ctx) {
+        const topEnd = this.gapY - this.gapSize / 2;
+        const bottomStart = this.gapY + this.gapSize / 2;
+
+        this.drawSegment(ctx, this.x + this.width / 2, topEnd / 2, this.width * 0.5, topEnd * 0.94, true);
+        this.drawSegment(ctx, this.x + this.width / 2, bottomStart + (this.game.height - bottomStart) / 2, this.width * 0.5, (this.game.height - bottomStart) * 0.94, false);
+      }
+
+      drawSegment(ctx, cx, cy, radius, height, isTop) {
+        switch (this.type) {
+          case "planet": this.drawPlanet(ctx, cx, cy, radius, height, isTop); break;
+          case "asteroid": this.drawAsteroidCluster(ctx, cx, cy, radius, height, isTop); break;
+          case "debris": this.drawDebris(ctx, cx, cy, radius, height, isTop); break;
+          default: this.drawSatellite(ctx, cx, cy, radius, height, isTop);
+        }
+      }
+
+      drawPlanet(ctx, cx, cy, radius, height) {
+        const count = Math.max(3, Math.floor(height / (radius * 1.4)));
+        for (let i = 0; i < count; i++) {
+          const y = cy - height / 2 + (i + 0.5) * (height / count);
+          const r = radius * (0.6 + (i % 2) * 0.25);
+          const g = ctx.createRadialGradient(cx - r * 0.25, y - r * 0.2, r * 0.2, cx, y, r);
+          g.addColorStop(0, "#f6b56f");
+          g.addColorStop(1, "#8a4d24");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(cx, y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      drawAsteroidCluster(ctx, cx, cy, radius, height) {
+        const count = Math.max(4, Math.floor(height / (radius * 1.15)));
+        for (let i = 0; i < count; i++) {
+          const y = cy - height / 2 + (i + 0.5) * (height / count);
+          const size = radius * (0.5 + Math.random() * 0.4);
+          ctx.fillStyle = i % 2 === 0 ? "#778197" : "#97a1b5";
+          ctx.beginPath();
+          for (let p = 0; p < 7; p++) {
+            const a = (Math.PI * 2 / 7) * p;
+            const rr = size * (0.72 + (p % 2) * 0.34);
+            const px = cx + Math.cos(a) * rr;
+            const py = y + Math.sin(a) * rr;
+            p === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      drawDebris(ctx, cx, cy, radius, height) {
+        const count = Math.max(5, Math.floor(height / (radius * 1.25)));
+        for (let i = 0; i < count; i++) {
+          const y = cy - height / 2 + (i + 0.5) * (height / count);
+          const w = radius * (0.9 + (i % 3) * 0.28);
+          const h = radius * (0.38 + ((i + 1) % 3) * 0.18);
+          ctx.save();
+          ctx.translate(cx, y);
+          ctx.rotate((i % 2 ? 1 : -1) * 0.3 + i * 0.03);
+          ctx.fillStyle = "#8fa0b9";
+          ctx.fillRect(-w / 2, -h / 2, w, h);
+          ctx.fillStyle = "#4f5d74";
+          ctx.fillRect(-w * 0.18, -h / 2, w * 0.36, h);
+          ctx.restore();
+        }
+      }
+
+      drawSatellite(ctx, cx, cy, radius, height) {
+        const count = Math.max(3, Math.floor(height / (radius * 1.7)));
+        for (let i = 0; i < count; i++) {
+          const y = cy - height / 2 + (i + 0.5) * (height / count);
+          const body = radius * 0.7;
+          ctx.fillStyle = "#c8d4e9";
+          ctx.fillRect(cx - body * 0.5, y - body * 0.4, body, body * 0.8);
+          ctx.fillStyle = "#5e7fb3";
+          ctx.fillRect(cx - body * 1.5, y - body * 0.24, body * 0.9, body * 0.48);
+          ctx.fillRect(cx + body * 0.6, y - body * 0.24, body * 0.9, body * 0.48);
+        }
+      }
+    }
+
+    class Game {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
+        this.state = "start";
+        this.score = 0;
+        this.best = Number(localStorage.getItem("galaxy-hopper-best") || 0);
+
+        this.config = {
+          gravity: 1150,
+          lift: -355,
+          maxFallSpeed: 630,
+          baseSpeed: 175,
+          speedIncreasePerPoint: 2.4,
+          obstacleWidth: 110,
+          obstacleGap: 198,
+          obstacleInterval: 1.55,
+        };
+
+        this.width = 0;
+        this.height = 0;
+        this.ship = new Spaceship(this);
+        this.bg = new StarBackground(this);
+        this.obstacles = [];
+        this.spawnTimer = 0;
+        this.lastTime = 0;
+
+        this.bindUI();
+        this.resize();
+        this.resetRound();
+        requestAnimationFrame((t) => this.loop(t));
+      }
+
+      bindUI() {
+        this.scoreText = document.getElementById("scoreText");
+        this.startOverlay = document.getElementById("startOverlay");
+        this.gameoverOverlay = document.getElementById("gameoverOverlay");
+        this.finalScore = document.getElementById("finalScore");
+        this.bestScore = document.getElementById("bestScore");
+
+        document.getElementById("startBtn").addEventListener("click", () => this.startFromMenu());
+        document.getElementById("restartBtn").addEventListener("click", () => this.restart());
+
+        window.addEventListener("resize", () => this.resize());
+
+        const trigger = (ev) => {
+          ev.preventDefault();
+          if (this.state === "start") this.startFromMenu(true);
+          else if (this.state === "playing") this.ship.flap();
+          else if (this.state === "gameover") this.restart();
+        };
+
+        this.canvas.addEventListener("pointerdown", trigger);
+        window.addEventListener("keydown", (ev) => {
+          if (ev.code === "Space") {
+            trigger(ev);
+          }
+        });
+      }
+
+      resize() {
+        const ratio = 9 / 16;
+        const maxW = Math.min(window.innerWidth - 20, 560);
+        const maxH = Math.min(window.innerHeight - 20, 900);
+        let w = maxW;
+        let h = w / ratio;
+        if (h > maxH) {
+          h = maxH;
+          w = h * ratio;
+        }
+        this.canvas.width = Math.floor(w * window.devicePixelRatio);
+        this.canvas.height = Math.floor(h * window.devicePixelRatio);
+        this.canvas.style.width = `${Math.floor(w)}px`;
+        this.canvas.style.height = `${Math.floor(h)}px`;
+
+        this.ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        this.width = Math.floor(w);
+        this.height = Math.floor(h);
+
+        this.ship.reset();
+        this.bg.resize();
+      }
+
+      startFromMenu(withImmediateFlap = false) {
+        this.state = "playing";
+        this.startOverlay.classList.add("hidden");
+        this.gameoverOverlay.classList.add("hidden");
+        this.scoreText.classList.add("show");
+        if (withImmediateFlap) this.ship.flap();
+      }
+
+      resetRound() {
+        this.obstacles = [];
+        this.spawnTimer = 0;
+        this.score = 0;
+        this.ship.reset();
+        this.updateScore();
+      }
+
+      restart() {
+        this.resetRound();
+        this.state = "playing";
+        this.gameoverOverlay.classList.add("hidden");
+        this.scoreText.classList.add("show");
+        this.ship.flap();
+      }
+
+      spawnObstacle() {
+        const margin = 70;
+        const gap = this.config.obstacleGap + (Math.random() * 20 - 10);
+        const minY = margin + gap / 2;
+        const maxY = this.height - margin - gap / 2;
+        const gapY = minY + Math.random() * (maxY - minY);
+        const types = ["planet", "asteroid", "debris", "satellite"];
+        const type = types[Math.floor(Math.random() * types.length)];
+        this.obstacles.push(new Obstacle(this, this.width + 30, gapY, gap, type));
+      }
+
+      currentSpeed() {
+        return this.config.baseSpeed + this.score * this.config.speedIncreasePerPoint;
+      }
+
+      updateScore() { this.scoreText.textContent = `SCORE ${this.score}`; }
+
+      endGame() {
+        this.state = "gameover";
+        this.best = Math.max(this.best, this.score);
+        localStorage.setItem("galaxy-hopper-best", String(this.best));
+        this.finalScore.textContent = String(this.score);
+        this.bestScore.textContent = String(this.best);
+        this.gameoverOverlay.classList.remove("hidden");
+        this.scoreText.classList.remove("show");
+      }
+
+      update(dt) {
+        const speed = this.currentSpeed();
+        this.bg.update(dt, speed);
+
+        if (this.state !== "playing") return;
+
+        this.spawnTimer += dt;
+        if (this.spawnTimer >= this.config.obstacleInterval) {
+          this.spawnTimer = 0;
+          this.spawnObstacle();
+        }
+
+        this.ship.update(dt);
+
+        for (const obs of this.obstacles) {
+          obs.update(dt, speed);
+
+          if (!obs.passed && obs.x + obs.width < this.ship.x) {
+            obs.passed = true;
+            this.score += 1;
+            this.updateScore();
+          }
+        }
+
+        this.obstacles = this.obstacles.filter((o) => !o.isOffScreen());
+
+        const bounds = this.ship.getBounds();
+        if (bounds.top <= 0 || bounds.bottom >= this.height) {
+          this.endGame();
+          return;
+        }
+
+        for (const obs of this.obstacles) {
+          if (obs.collides(bounds)) {
+            this.endGame();
+            return;
+          }
+        }
+      }
+
+      draw() {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.width, this.height);
+
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
+        bgGrad.addColorStop(0, "#070f25");
+        bgGrad.addColorStop(1, "#040813");
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        this.bg.draw(ctx);
+        this.obstacles.forEach((obs) => obs.draw(ctx));
+        this.ship.draw(ctx);
+
+        if (this.state === "start") {
+          ctx.fillStyle = "rgba(0,0,0,0.20)";
+          ctx.fillRect(0, 0, this.width, this.height);
+        }
+      }
+
+      loop(timestamp) {
+        if (!this.lastTime) this.lastTime = timestamp;
+        const dt = Math.min(0.033, (timestamp - this.lastTime) / 1000);
+        this.lastTime = timestamp;
+
+        this.update(dt);
+        this.draw();
+        requestAnimationFrame((t) => this.loop(t));
+      }
+    }
+
+    new Game(document.getElementById("gameCanvas"));
+  </script>
+</body>
+</html>
