@@ -3,633 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Galaxy Hopper</title>
+  <title>Escape The Galaxy：逃离银河系</title>
   <style>
-    :root {
-      --bg: #040711;
-      --panel: rgba(10, 16, 34, 0.78);
-      --panel-border: rgba(173, 216, 255, 0.26);
-      --text: #eaf5ff;
-      --muted: #9db8d6;
-      --accent: #63d4ff;
-      --accent-2: #8d7bff;
-      --danger: #ff7285;
-      --shadow: 0 10px 30px rgba(2, 8, 24, 0.55);
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      background: radial-gradient(circle at 20% 10%, #0d1739 0%, #050919 45%, #03050f 100%);
-      color: var(--text);
-      font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
-      overflow: hidden;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-    }
-
-    #app {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: grid;
-      place-items: center;
-      padding: 10px;
-    }
-
-    canvas {
-      width: min(100vw - 20px, 560px);
-      height: min(100vh - 20px, 900px);
-      aspect-ratio: 9 / 16;
-      border-radius: 18px;
-      background: #030710;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(112, 149, 205, 0.24);
-      display: block;
-    }
-
-    .hud {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
-      width: min(100vw - 20px, 560px);
-      height: min(100vh - 20px, 900px);
-    }
-
-    .score {
-      margin-top: 6px;
-      font-size: clamp(18px, 3.2vw, 28px);
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-shadow: 0 2px 8px rgba(18, 188, 255, 0.32);
-      opacity: 0;
-      transition: opacity 180ms ease;
-    }
-
-    .score.show { opacity: 1; }
-
-    .overlay {
-      pointer-events: auto;
-      width: min(88%, 390px);
-      border: 1px solid var(--panel-border);
-      border-radius: 16px;
-      background: var(--panel);
-      backdrop-filter: blur(6px);
-      box-shadow: var(--shadow);
-      padding: 20px 20px 18px;
-      text-align: center;
-      align-self: center;
-    }
-
-    .overlay.hidden { display: none; }
-
-    h1, h2 {
-      margin: 0 0 10px;
-      line-height: 1.15;
-      letter-spacing: 0.04em;
-    }
-
-    h1 { font-size: clamp(28px, 5.2vw, 40px); }
-    h2 { font-size: clamp(24px, 4.4vw, 34px); color: var(--danger); }
-
-    p {
-      margin: 8px 0;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: clamp(14px, 2.8vw, 17px);
-    }
-
-    .btn {
-      appearance: none;
-      border: none;
-      border-radius: 999px;
-      margin-top: 14px;
-      padding: 12px 24px;
-      color: #031421;
-      background: linear-gradient(100deg, var(--accent), #6be8ff 45%, #99f0ff);
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      transition: transform 120ms ease, box-shadow 140ms ease;
-      box-shadow: 0 8px 22px rgba(99, 212, 255, 0.32);
-    }
-
-    .btn:active { transform: translateY(1px) scale(0.99); }
-
-    .stats {
-      margin-top: 10px;
-      display: grid;
-      gap: 4px;
-      font-size: 15px;
-      color: #d2e9ff;
-    }
+    :root{--bg:#030612;--panel:rgba(7,14,30,.82);--line:rgba(137,189,255,.35);--txt:#e8f6ff;--muted:#a9bfd8;--accent:#65deff}
+    *{box-sizing:border-box} html,body{margin:0;height:100%;background:radial-gradient(circle at 20% 10%,#0f1f4a,#040715 60%,#02040d);color:var(--txt);font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+    #app{height:100%;display:grid;place-items:center;padding:10px;position:relative}
+    canvas{width:min(100vw - 20px,560px);height:min(100vh - 20px,900px);aspect-ratio:9/16;border-radius:18px;border:1px solid rgba(120,170,230,.28);box-shadow:0 14px 44px rgba(0,0,0,.45)}
+    .hud{position:absolute;inset:0;display:flex;justify-content:center;align-items:flex-start;pointer-events:none}
+    .top{width:min(100vw - 20px,560px);padding:14px 14px 0;font-size:13px;text-shadow:0 2px 8px #0008;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+    .top div:nth-child(odd){color:var(--muted)}
+    .overlay{pointer-events:auto;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(88%,420px);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;box-shadow:0 16px 40px #0008}
+    .hidden{display:none}.btn{border:none;border-radius:999px;padding:11px 20px;background:linear-gradient(120deg,var(--accent),#8ae8ff);font-weight:700;cursor:pointer;margin-top:12px}
+    h1,h2{margin:0 0 10px} p{margin:7px 0;color:var(--muted);line-height:1.45}
   </style>
 </head>
 <body>
-  <div id="app">
-    <canvas id="gameCanvas" aria-label="Galaxy Hopper 游戏画布"></canvas>
-
-    <div class="hud">
-      <div id="scoreText" class="score">SCORE 0</div>
-
-      <section id="startOverlay" class="overlay">
-        <h1>Galaxy Hopper</h1>
-        <p>点击 / 空格 / 触摸，控制飞船向上推进，穿越银河障碍。</p>
-        <p>小心星球、陨石、太空垃圾与残破卫星！</p>
-        <button id="startBtn" class="btn">Start Mission</button>
-      </section>
-
-      <section id="gameoverOverlay" class="overlay hidden">
-        <h2>Game Over</h2>
-        <div class="stats">
-          <div>本局分数：<strong id="finalScore">0</strong></div>
-          <div>历史最高：<strong id="bestScore">0</strong></div>
-        </div>
-        <button id="restartBtn" class="btn">Restart</button>
-      </section>
-    </div>
-  </div>
-
-  <script>
-    class StarBackground {
-      constructor(game) {
-        this.game = game;
-        this.layers = [];
-        this.createLayers();
-      }
-
-      createLayers() {
-        const { width, height } = this.game;
-        this.layers = [0.25, 0.5, 0.9].map((speedFactor, i) => {
-          const count = Math.floor((width * height) / (7000 - i * 1500));
-          const stars = Array.from({ length: count }, () => ({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            size: Math.random() * (1.3 + i * 0.6) + 0.4,
-            alpha: Math.random() * 0.5 + 0.35,
-            twinkle: Math.random() * Math.PI * 2,
-          }));
-          return { speedFactor, stars };
-        });
-      }
-
-      resize() { this.createLayers(); }
-
-      update(dt, speed) {
-        for (const layer of this.layers) {
-          const vx = speed * layer.speedFactor * dt;
-          for (const star of layer.stars) {
-            star.x -= vx;
-            star.twinkle += dt * 2;
-            if (star.x < -4) {
-              star.x = this.game.width + 4;
-              star.y = Math.random() * this.game.height;
-            }
-          }
-        }
-      }
-
-      draw(ctx) {
-        const { width, height } = this.game;
-
-        const nebula = ctx.createRadialGradient(width * 0.74, height * 0.2, 20, width * 0.7, height * 0.2, width * 0.8);
-        nebula.addColorStop(0, "rgba(128, 114, 255, 0.20)");
-        nebula.addColorStop(0.55, "rgba(67, 142, 255, 0.14)");
-        nebula.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = nebula;
-        ctx.fillRect(0, 0, width, height);
-
-        const galaxyBand = ctx.createLinearGradient(0, height * 0.3, width, height * 0.65);
-        galaxyBand.addColorStop(0, "rgba(158, 116, 255, 0.07)");
-        galaxyBand.addColorStop(0.5, "rgba(119, 221, 255, 0.10)");
-        galaxyBand.addColorStop(1, "rgba(158, 116, 255, 0.07)");
-        ctx.fillStyle = galaxyBand;
-        ctx.fillRect(0, height * 0.18, width, height * 0.56);
-
-        for (const layer of this.layers) {
-          for (const s of layer.stars) {
-            ctx.globalAlpha = Math.min(1, s.alpha + Math.sin(s.twinkle) * 0.12);
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-        ctx.globalAlpha = 1;
-      }
-    }
-
-    class Spaceship {
-      constructor(game) {
-        this.game = game;
-        this.x = game.width * 0.27;
-        this.y = game.height * 0.5;
-        this.w = 52;
-        this.h = 34;
-        this.velocityY = 0;
-      }
-
-      reset() {
-        this.x = this.game.width * 0.27;
-        this.y = this.game.height * 0.5;
-        this.velocityY = 0;
-      }
-
-      flap() {
-        this.velocityY = this.game.config.lift;
-      }
-
-      update(dt) {
-        this.velocityY += this.game.config.gravity * dt;
-        this.velocityY = Math.min(this.velocityY, this.game.config.maxFallSpeed);
-        this.y += this.velocityY * dt;
-      }
-
-      getBounds() {
-        return {
-          left: this.x - this.w * 0.38,
-          right: this.x + this.w * 0.42,
-          top: this.y - this.h * 0.34,
-          bottom: this.y + this.h * 0.34,
-        };
-      }
-
-      draw(ctx) {
-        const tilt = Math.max(-0.42, Math.min(0.35, this.velocityY / 520));
-        const flameBoost = this.velocityY < -170 ? 1.45 : 1;
-
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(tilt);
-
-        const flameLength = 12 + Math.random() * 7 * flameBoost;
-        const flameGradient = ctx.createLinearGradient(-28, 0, -28 - flameLength, 0);
-        flameGradient.addColorStop(0, "rgba(255, 227, 150, 0.95)");
-        flameGradient.addColorStop(0.45, "rgba(255, 125, 70, 0.85)");
-        flameGradient.addColorStop(1, "rgba(128, 60, 255, 0)");
-        ctx.fillStyle = flameGradient;
-        ctx.beginPath();
-        ctx.moveTo(-26, 0);
-        ctx.lineTo(-26 - flameLength, -6);
-        ctx.lineTo(-26 - flameLength * 0.9, 6);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#a9c6ff";
-        ctx.beginPath();
-        ctx.moveTo(-22, -11);
-        ctx.lineTo(14, -14);
-        ctx.quadraticCurveTo(26, 0, 14, 14);
-        ctx.lineTo(-22, 11);
-        ctx.quadraticCurveTo(-30, 0, -22, -11);
-        ctx.fill();
-
-        ctx.fillStyle = "#4f79c8";
-        ctx.beginPath();
-        ctx.moveTo(-8, -16);
-        ctx.lineTo(4, -24);
-        ctx.lineTo(10, -13);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(-8, 16);
-        ctx.lineTo(4, 24);
-        ctx.lineTo(10, 13);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#85f2ff";
-        ctx.beginPath();
-        ctx.ellipse(5, -2, 7.4, 5.3, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore();
-      }
-    }
-
-    class Obstacle {
-      constructor(game, x, gapY, gapSize, type) {
-        this.game = game;
-        this.x = x;
-        this.gapY = gapY;
-        this.gapSize = gapSize;
-        this.type = type;
-        this.width = game.config.obstacleWidth;
-        this.passed = false;
-      }
-
-      update(dt, speed) { this.x -= speed * dt; }
-      isOffScreen() { return this.x + this.width < -30; }
-
-      collides(bounds) {
-        const left = this.x;
-        const right = this.x + this.width;
-        if (bounds.right < left || bounds.left > right) return false;
-
-        const topBottom = this.gapY - this.gapSize / 2;
-        const bottomTop = this.gapY + this.gapSize / 2;
-        return bounds.top < topBottom || bounds.bottom > bottomTop;
-      }
-
-      draw(ctx) {
-        const topEnd = this.gapY - this.gapSize / 2;
-        const bottomStart = this.gapY + this.gapSize / 2;
-
-        this.drawSegment(ctx, this.x + this.width / 2, topEnd / 2, this.width * 0.5, topEnd * 0.94, true);
-        this.drawSegment(ctx, this.x + this.width / 2, bottomStart + (this.game.height - bottomStart) / 2, this.width * 0.5, (this.game.height - bottomStart) * 0.94, false);
-      }
-
-      drawSegment(ctx, cx, cy, radius, height, isTop) {
-        switch (this.type) {
-          case "planet": this.drawPlanet(ctx, cx, cy, radius, height, isTop); break;
-          case "asteroid": this.drawAsteroidCluster(ctx, cx, cy, radius, height, isTop); break;
-          case "debris": this.drawDebris(ctx, cx, cy, radius, height, isTop); break;
-          default: this.drawSatellite(ctx, cx, cy, radius, height, isTop);
-        }
-      }
-
-      drawPlanet(ctx, cx, cy, radius, height) {
-        const count = Math.max(3, Math.floor(height / (radius * 1.4)));
-        for (let i = 0; i < count; i++) {
-          const y = cy - height / 2 + (i + 0.5) * (height / count);
-          const r = radius * (0.6 + (i % 2) * 0.25);
-          const g = ctx.createRadialGradient(cx - r * 0.25, y - r * 0.2, r * 0.2, cx, y, r);
-          g.addColorStop(0, "#f6b56f");
-          g.addColorStop(1, "#8a4d24");
-          ctx.fillStyle = g;
-          ctx.beginPath();
-          ctx.arc(cx, y, r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      drawAsteroidCluster(ctx, cx, cy, radius, height) {
-        const count = Math.max(4, Math.floor(height / (radius * 1.15)));
-        for (let i = 0; i < count; i++) {
-          const y = cy - height / 2 + (i + 0.5) * (height / count);
-          const size = radius * (0.5 + Math.random() * 0.4);
-          ctx.fillStyle = i % 2 === 0 ? "#778197" : "#97a1b5";
-          ctx.beginPath();
-          for (let p = 0; p < 7; p++) {
-            const a = (Math.PI * 2 / 7) * p;
-            const rr = size * (0.72 + (p % 2) * 0.34);
-            const px = cx + Math.cos(a) * rr;
-            const py = y + Math.sin(a) * rr;
-            p === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.fill();
-        }
-      }
-
-      drawDebris(ctx, cx, cy, radius, height) {
-        const count = Math.max(5, Math.floor(height / (radius * 1.25)));
-        for (let i = 0; i < count; i++) {
-          const y = cy - height / 2 + (i + 0.5) * (height / count);
-          const w = radius * (0.9 + (i % 3) * 0.28);
-          const h = radius * (0.38 + ((i + 1) % 3) * 0.18);
-          ctx.save();
-          ctx.translate(cx, y);
-          ctx.rotate((i % 2 ? 1 : -1) * 0.3 + i * 0.03);
-          ctx.fillStyle = "#8fa0b9";
-          ctx.fillRect(-w / 2, -h / 2, w, h);
-          ctx.fillStyle = "#4f5d74";
-          ctx.fillRect(-w * 0.18, -h / 2, w * 0.36, h);
-          ctx.restore();
-        }
-      }
-
-      drawSatellite(ctx, cx, cy, radius, height) {
-        const count = Math.max(3, Math.floor(height / (radius * 1.7)));
-        for (let i = 0; i < count; i++) {
-          const y = cy - height / 2 + (i + 0.5) * (height / count);
-          const body = radius * 0.7;
-          ctx.fillStyle = "#c8d4e9";
-          ctx.fillRect(cx - body * 0.5, y - body * 0.4, body, body * 0.8);
-          ctx.fillStyle = "#5e7fb3";
-          ctx.fillRect(cx - body * 1.5, y - body * 0.24, body * 0.9, body * 0.48);
-          ctx.fillRect(cx + body * 0.6, y - body * 0.24, body * 0.9, body * 0.48);
-        }
-      }
-    }
-
-    class Game {
-      constructor(canvas) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
-        this.state = "start";
-        this.score = 0;
-        this.best = Number(localStorage.getItem("galaxy-hopper-best") || 0);
-
-        this.config = {
-          gravity: 1150,
-          lift: -355,
-          maxFallSpeed: 630,
-          baseSpeed: 175,
-          speedIncreasePerPoint: 2.4,
-          obstacleWidth: 110,
-          obstacleGap: 198,
-          obstacleInterval: 1.55,
-        };
-
-        this.width = 0;
-        this.height = 0;
-        this.ship = new Spaceship(this);
-        this.bg = new StarBackground(this);
-        this.obstacles = [];
-        this.spawnTimer = 0;
-        this.lastTime = 0;
-
-        this.bindUI();
-        this.resize();
-        this.resetRound();
-        requestAnimationFrame((t) => this.loop(t));
-      }
-
-      bindUI() {
-        this.scoreText = document.getElementById("scoreText");
-        this.startOverlay = document.getElementById("startOverlay");
-        this.gameoverOverlay = document.getElementById("gameoverOverlay");
-        this.finalScore = document.getElementById("finalScore");
-        this.bestScore = document.getElementById("bestScore");
-
-        document.getElementById("startBtn").addEventListener("click", () => this.startFromMenu());
-        document.getElementById("restartBtn").addEventListener("click", () => this.restart());
-
-        window.addEventListener("resize", () => this.resize());
-
-        const trigger = (ev) => {
-          ev.preventDefault();
-          if (this.state === "start") this.startFromMenu(true);
-          else if (this.state === "playing") this.ship.flap();
-          else if (this.state === "gameover") this.restart();
-        };
-
-        this.canvas.addEventListener("pointerdown", trigger);
-        window.addEventListener("keydown", (ev) => {
-          if (ev.code === "Space") {
-            trigger(ev);
-          }
-        });
-      }
-
-      resize() {
-        const ratio = 9 / 16;
-        const maxW = Math.min(window.innerWidth - 20, 560);
-        const maxH = Math.min(window.innerHeight - 20, 900);
-        let w = maxW;
-        let h = w / ratio;
-        if (h > maxH) {
-          h = maxH;
-          w = h * ratio;
-        }
-        this.canvas.width = Math.floor(w * window.devicePixelRatio);
-        this.canvas.height = Math.floor(h * window.devicePixelRatio);
-        this.canvas.style.width = `${Math.floor(w)}px`;
-        this.canvas.style.height = `${Math.floor(h)}px`;
-
-        this.ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-        this.width = Math.floor(w);
-        this.height = Math.floor(h);
-
-        this.ship.reset();
-        this.bg.resize();
-      }
-
-      startFromMenu(withImmediateFlap = false) {
-        this.state = "playing";
-        this.startOverlay.classList.add("hidden");
-        this.gameoverOverlay.classList.add("hidden");
-        this.scoreText.classList.add("show");
-        if (withImmediateFlap) this.ship.flap();
-      }
-
-      resetRound() {
-        this.obstacles = [];
-        this.spawnTimer = 0;
-        this.score = 0;
-        this.ship.reset();
-        this.updateScore();
-      }
-
-      restart() {
-        this.resetRound();
-        this.state = "playing";
-        this.gameoverOverlay.classList.add("hidden");
-        this.scoreText.classList.add("show");
-        this.ship.flap();
-      }
-
-      spawnObstacle() {
-        const margin = 70;
-        const gap = this.config.obstacleGap + (Math.random() * 20 - 10);
-        const minY = margin + gap / 2;
-        const maxY = this.height - margin - gap / 2;
-        const gapY = minY + Math.random() * (maxY - minY);
-        const types = ["planet", "asteroid", "debris", "satellite"];
-        const type = types[Math.floor(Math.random() * types.length)];
-        this.obstacles.push(new Obstacle(this, this.width + 30, gapY, gap, type));
-      }
-
-      currentSpeed() {
-        return this.config.baseSpeed + this.score * this.config.speedIncreasePerPoint;
-      }
-
-      updateScore() { this.scoreText.textContent = `SCORE ${this.score}`; }
-
-      endGame() {
-        this.state = "gameover";
-        this.best = Math.max(this.best, this.score);
-        localStorage.setItem("galaxy-hopper-best", String(this.best));
-        this.finalScore.textContent = String(this.score);
-        this.bestScore.textContent = String(this.best);
-        this.gameoverOverlay.classList.remove("hidden");
-        this.scoreText.classList.remove("show");
-      }
-
-      update(dt) {
-        const speed = this.currentSpeed();
-        this.bg.update(dt, speed);
-
-        if (this.state !== "playing") return;
-
-        this.spawnTimer += dt;
-        if (this.spawnTimer >= this.config.obstacleInterval) {
-          this.spawnTimer = 0;
-          this.spawnObstacle();
-        }
-
-        this.ship.update(dt);
-
-        for (const obs of this.obstacles) {
-          obs.update(dt, speed);
-
-          if (!obs.passed && obs.x + obs.width < this.ship.x) {
-            obs.passed = true;
-            this.score += 1;
-            this.updateScore();
-          }
-        }
-
-        this.obstacles = this.obstacles.filter((o) => !o.isOffScreen());
-
-        const bounds = this.ship.getBounds();
-        if (bounds.top <= 0 || bounds.bottom >= this.height) {
-          this.endGame();
-          return;
-        }
-
-        for (const obs of this.obstacles) {
-          if (obs.collides(bounds)) {
-            this.endGame();
-            return;
-          }
-        }
-      }
-
-      draw() {
-        const ctx = this.ctx;
-        ctx.clearRect(0, 0, this.width, this.height);
-
-        const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
-        bgGrad.addColorStop(0, "#070f25");
-        bgGrad.addColorStop(1, "#040813");
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        this.bg.draw(ctx);
-        this.obstacles.forEach((obs) => obs.draw(ctx));
-        this.ship.draw(ctx);
-
-        if (this.state === "start") {
-          ctx.fillStyle = "rgba(0,0,0,0.20)";
-          ctx.fillRect(0, 0, this.width, this.height);
-        }
-      }
-
-      loop(timestamp) {
-        if (!this.lastTime) this.lastTime = timestamp;
-        const dt = Math.min(0.033, (timestamp - this.lastTime) / 1000);
-        this.lastTime = timestamp;
-
-        this.update(dt);
-        this.draw();
-        requestAnimationFrame((t) => this.loop(t));
-      }
-    }
-
-    new Game(document.getElementById("gameCanvas"));
-  </script>
+<div id="app">
+  <canvas id="game"></canvas>
+  <div class="hud"><div class="top" id="hudText"></div></div>
+  <section class="overlay" id="start"><h1>Escape The Galaxy：逃离银河系</h1><p>点击 / 空格 / 触摸 推进 Ark-7 飞船。</p><p>从地球轨道一路穿越到银河边界。</p><button class="btn" id="startBtn">Start Journey</button></section>
+  <section class="overlay hidden" id="levelIntro"><h2 id="introTitle"></h2><p id="introDesc"></p><p id="introObj"></p><button class="btn" id="introBtn">进入关卡</button></section>
+  <section class="overlay hidden" id="gameOver"><h2>Game Over · 飞船已损毁</h2><p id="goLevel"></p><p id="goCheckpoint"></p><p id="goScore"></p><p id="goBest"></p><button class="btn" id="retryBtn">Retry From Checkpoint</button></section>
+  <section class="overlay hidden" id="levelClear"><h2 id="clearTitle"></h2><p id="clearCheckpoint"></p><p id="clearScore"></p><p id="clearTime"></p><p id="clearNext"></p><button class="btn" id="nextBtn">下一关</button></section>
+  <section class="overlay hidden" id="finalClear"><h2>银河逃逸成功</h2><p>Ark-7 穿越了银河系边界。身后的银河像银色旋涡，逐渐远去。</p><p>人类第一次真正离开了自己的星系。</p><button class="btn" id="restartJourney">Restart Journey</button><button class="btn" id="freeFlight">Continue Free Flight</button></section>
+</div>
+<script>
+const levels=[
+{id:1,name:"地球轨道",checkpointName:"国际空间站",description:"穿越近地轨道卫星与碎片。",objectiveType:"score",objectiveValue:20,gravity:.35,thrust:-6.2,obstacleSpeed:2.8,obstacleGap:180,obstacleInterval:1500,obstacleTypes:["satellite","spaceDebris","solarPanel"],backgroundTheme:"earthOrbit"},
+{id:2,name:"月球轨道",checkpointName:"月球前哨站",description:"低重力但更难控速。",objectiveType:"survive",objectiveValue:75,gravity:.25,thrust:-5.4,obstacleSpeed:3.0,obstacleGap:170,obstacleInterval:1450,obstacleTypes:["moonRock","miner","crater"],backgroundTheme:"moon"},
+{id:3,name:"火星航道",checkpointName:"火星殖民站",description:"部分障碍会轻微上下移动。",objectiveType:"score",objectiveValue:35,movingObstacleRate:.25,gravity:.35,thrust:-6.2,obstacleSpeed:3.2,obstacleGap:160,obstacleInterval:1400,obstacleTypes:["marsSat","redMeteor","dust"],backgroundTheme:"mars"},
+{id:4,name:"小行星带",checkpointName:"谷神星采矿站",description:"大量不规则旋转岩块。",objectiveType:"score",objectiveValue:45,gravity:.35,thrust:-6.2,obstacleSpeed:3.4,obstacleGap:155,obstacleInterval:1350,obstacleTypes:["asteroid","metalRig","rubble"],backgroundTheme:"asteroidBelt"},
+{id:5,name:"木星引力区",checkpointName:"木卫二基地",description:"穿越 3 个引力风暴区。",objectiveType:"event",objectiveValue:3,eventType:"gravityWave",gravityWaveIntensity:.12,gravity:.38,thrust:-6.2,obstacleSpeed:3.6,obstacleGap:160,obstacleInterval:1320,obstacleTypes:["storm","iceMoon","orbitDebris"],backgroundTheme:"jupiter"},
+{id:6,name:"土星环",checkpointName:"土卫六中继站",description:"高密度窄通道挑战。",objectiveType:"score",objectiveValue:60,gravity:.35,thrust:-6.2,obstacleSpeed:3.8,obstacleGap:145,obstacleInterval:1150,obstacleTypes:["iceShard","ringRock","ringGap"],backgroundTheme:"saturn"},
+{id:7,name:"海王星外缘",checkpointName:"深蓝观测站",description:"低可见度航行。",objectiveType:"survive",objectiveValue:90,visibilityRadius:420,gravity:.35,thrust:-6.1,obstacleSpeed:4.0,obstacleGap:150,obstacleInterval:1200,obstacleTypes:["iceMeteor","frozenProbe","blueVortex"],backgroundTheme:"neptune"},
+{id:8,name:"柯伊伯带",checkpointName:"冥王星航标站",description:"收集深空能源核心。",objectiveType:"collect",objectiveValue:5,gravity:.35,thrust:-6.2,obstacleSpeed:4.1,obstacleGap:150,obstacleInterval:1200,obstacleTypes:["frozenAsteroid","dwarfShadow","crystalWall"],backgroundTheme:"kuiper"},
+{id:9,name:"奥尔特云",checkpointName:"旅行者残响站",description:"雷达脉冲短暂照亮前方。",objectiveType:"survive",objectiveValue:100,radarPulseInterval:3000,radarPulseDuration:700,gravity:.35,thrust:-6.2,obstacleSpeed:4.2,obstacleGap:150,obstacleInterval:1200,obstacleTypes:["cometCore","iceCloud","probeWreck"],backgroundTheme:"oort"},
+{id:10,name:"比邻星航线",checkpointName:"比邻星中继站",description:"躲过 5 次恒星风暴。",objectiveType:"event",objectiveValue:5,eventType:"storm",stormInterval:12000,gravity:.35,thrust:-6.2,obstacleSpeed:4.3,obstacleGap:145,obstacleInterval:1180,obstacleTypes:["plasmaArc","starDust","burnMeteor"],backgroundTheme:"proxima"},
+{id:11,name:"猎户臂深处",checkpointName:"猎户臂银河航标",description:"双路线空隙，上窄下宽。",objectiveType:"score",objectiveValue:55,bonusRouteRate:.35,gravity:.35,thrust:-6.2,obstacleSpeed:4.4,obstacleGap:145,obstacleInterval:1180,obstacleTypes:["nebulaGas","starRemnant","beacon"],backgroundTheme:"orionArm"},
+{id:12,name:"英仙臂边缘",checkpointName:"英仙臂外缘站",description:"尘埃云遮挡视野。",objectiveType:"survive",objectiveValue:110,dustCloudRate:.25,gravity:.35,thrust:-6.2,obstacleSpeed:4.6,obstacleGap:140,obstacleInterval:1150,obstacleTypes:["cluster","dustWall","brokenStation"],backgroundTheme:"perseusArm"},
+{id:13,name:"银河外盘",checkpointName:"外盘深空港",description:"低密度高速飞行。",objectiveType:"survive",objectiveValue:120,gravity:.35,thrust:-6.2,obstacleSpeed:5.2,obstacleGap:150,obstacleInterval:1300,obstacleTypes:["fastMeteor","probeArray","sparseDebris"],backgroundTheme:"outerDisk"},
+{id:14,name:"银晕区域",checkpointName:"球状星团观测站",description:"穿越 6 个引力透镜区。",objectiveType:"event",objectiveValue:6,eventType:"lens",lensForce:.1,gravity:.35,thrust:-6.2,obstacleSpeed:5.0,obstacleGap:145,obstacleInterval:1220,obstacleTypes:["oldStar","clusterShadow","lens"],backgroundTheme:"galacticHalo"},
+{id:15,name:"银河边界",checkpointName:"最终跃迁门",description:"最终综合挑战，穿越 80 组障碍。",objectiveType:"score",objectiveValue:80,gravity:.38,thrust:-6.2,obstacleSpeed:5.5,obstacleGap:140,obstacleInterval:1180,obstacleTypes:["rift","darkStorm","boundaryWall"],backgroundTheme:"galacticEdge"}
+];
+class Spaceship{constructor(g){this.g=g;this.reset()}reset(){this.x=this.g.w*.25;this.y=this.g.h*.5;this.vy=0}flap(){this.vy=this.g.lv.thrust}update(){this.vy=Math.min(this.vy+this.g.lv.gravity,this.g.maxFall);this.y+=this.vy}box(){return{l:this.x-18,r:this.x+20,t:this.y-12,b:this.y+12}}draw(c){const p=Math.max(-.4,Math.min(.35,this.vy/8));c.save();c.translate(this.x,this.y);c.rotate(p);const boost=this.vy<this.g.lv.thrust*.6?1.5:1;const len=11+Math.random()*8*boost;let fg=c.createLinearGradient(-22,0,-22-len,0);fg.addColorStop(0,"#fff2af");fg.addColorStop(.5,"#68d7ff");fg.addColorStop(1,"#68d7ff00");c.fillStyle=fg;c.beginPath();c.moveTo(-20,0);c.lineTo(-20-len,-6);c.lineTo(-20-len,6);c.closePath();c.fill();c.fillStyle="#b7d3ff";c.beginPath();c.moveTo(-16,-10);c.lineTo(16,-12);c.quadraticCurveTo(25,0,16,12);c.lineTo(-16,10);c.quadraticCurveTo(-24,0,-16,-10);c.fill();c.fillStyle="#5b8de0";c.fillRect(-5,-16,10,4);c.fillRect(-5,12,10,4);c.fillStyle="#91f2ff";c.beginPath();c.ellipse(6,-2,6,4,0,0,Math.PI*2);c.fill();c.restore();}}
+class ObstacleManager{constructor(g){this.g=g;this.arr=[];this.timer=0;this.cores=[]}reset(){this.arr=[];this.timer=0;this.cores=[]}spawn(){const lv=this.g.lv;const gap=lv.obstacleGap+(Math.random()*18-9);const m=60,min=m+gap/2,max=this.g.h-m-gap/2;const gy=min+Math.random()*(max-min);this.arr.push({x:this.g.w+20,w:90,gap,gy,type:lv.obstacleTypes[(Math.random()*lv.obstacleTypes.length)|0],mov:Math.random()<(lv.movingObstacleRate||0),seed:Math.random()*99,rot:Math.random()*6,passed:false});if(lv.objectiveType==="collect"&&Math.random()<.7)this.cores.push({x:this.g.w+65,y:gy+(Math.random()*24-12),r:9,collected:false});}
+update(dt){this.timer+=dt;if(this.timer>=this.g.lv.obstacleInterval){this.timer=0;this.spawn()}const sp=this.g.lv.obstacleSpeed*60*dt;for(const o of this.arr){o.x-=sp;o.rot+=.03;if(o.mov)o.gy+=Math.sin(this.g.t*.004+o.seed)*.45;if(!o.passed&&o.x+o.w<this.g.ship.x){o.passed=true;this.g.score++;if(this.g.lv.objectiveType==="score")this.g.progress=this.g.score;if(this.g.lv.id===11&&Math.random()<this.g.lv.bonusRouteRate&&this.g.ship.y<o.gy)this.g.score++;}}
+for(const c of this.cores)c.x-=sp;this.arr=this.arr.filter(o=>o.x+o.w>-40);this.cores=this.cores.filter(c=>c.x>-30&&!c.collected)}
+collide(){const b=this.g.ship.box();if(b.t<=0||b.b>=this.g.h)return true;for(const o of this.arr){if(b.r<o.x||b.l>o.x+o.w)continue;const top=o.gy-o.gap/2,bot=o.gy+o.gap/2;if(b.t<top||b.b>bot)return true;}return false}
+collect(){if(this.g.lv.objectiveType!=="collect")return;for(const c of this.cores){if(c.collected)continue;const dx=this.g.ship.x-c.x,dy=this.g.ship.y-c.y;if(dx*dx+dy*dy<18*18){c.collected=true;this.g.progress++;}}}
+drawSeg(c,x,cy,h,type){c.save();c.translate(x,cy);if(["asteroid","redMeteor","iceMeteor","fastMeteor","burnMeteor","frozenAsteroid"].includes(type)){c.fillStyle="#8d96aa";c.beginPath();for(let i=0;i<8;i++){let a=i*Math.PI/4,r=22+(i%2?9:0);c[i?"lineTo":"moveTo"](Math.cos(a)*r,Math.sin(a)*r)}c.closePath();c.fill()} else if(type.includes("storm")||type.includes("rift")||type.includes("vortex")){let g=c.createRadialGradient(0,0,6,0,0,34);g.addColorStop(0,"#8be3ff");g.addColorStop(1,"#8be3ff00");c.fillStyle=g;c.beginPath();c.arc(0,0,34,0,Math.PI*2);c.fill()} else {c.fillStyle="#b6c8de";c.fillRect(-26,-10,52,20);c.fillStyle="#4f7399";c.fillRect(-10,-13,20,26)}c.restore();}
+render(c){for(const o of this.arr){const top=o.gy-o.gap/2,bottom=o.gy+o.gap/2;for(let y=26;y<top;y+=52)this.drawSeg(c,o.x+45,y,top,o.type);for(let y=bottom+26;y<this.g.h;y+=52)this.drawSeg(c,o.x+45,y,this.g.h-bottom,o.type);}for(const core of this.cores){c.save();c.globalAlpha=.95;c.translate(core.x,core.y);c.rotate(this.g.t*.003);c.fillStyle="#8cf7ff";c.beginPath();for(let i=0;i<8;i++){let a=i*Math.PI/4,r=i%2?5:10;c[i?"lineTo":"moveTo"](Math.cos(a)*r,Math.sin(a)*r)}c.closePath();c.fill();c.restore();}}
+}
+class Background{constructor(g){this.g=g;this.stars=[];this.make()}make(){this.stars=Array.from({length:180},()=>({x:Math.random()*this.g.w,y:Math.random()*this.g.h,s:Math.random()*1.8+.4,a:Math.random()*.6+.2}))}
+resize(){this.make()}theme(){return this.g.lv.backgroundTheme}
+render(c){const t=this.theme(),w=this.g.w,h=this.g.h;const map={earthOrbit:["#0b1737","#050a16"],moon:["#1a1c27","#090b12"],mars:["#2f1310","#120607"],asteroidBelt:["#2a221c","#0f0c0a"],jupiter:["#3b1f14","#10080a"],saturn:["#3c311f","#120f08"],neptune:["#07243d","#030a15"],kuiper:["#0f2f48","#050d19"],oort:["#020307","#000"],proxima:["#330c14","#080306"],orionArm:["#1f1137","#070515"],perseusArm:["#2d1733","#080510"],outerDisk:["#111522","#05070f"],galacticHalo:["#181c30","#060811"],galacticEdge:["#090d18","#000"]}[t]||["#101a35","#060a16"];let g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,map[0]);g.addColorStop(1,map[1]);c.fillStyle=g;c.fillRect(0,0,w,h);
+for(const s of this.stars){s.x-=this.g.lv.obstacleSpeed*.07;if(s.x<0)s.x=w;const vis=(this.g.lv.visibilityRadius&&Math.hypot(s.x-this.g.ship.x,s.y-this.g.ship.y)>this.g.lv.visibilityRadius)?0.14:1;c.globalAlpha=s.a*vis;c.fillStyle="#fff";c.fillRect(s.x,s.y,s.s,s.s)}c.globalAlpha=1;
+if(t==="earthOrbit"){c.fillStyle="#2d78d8";c.beginPath();c.arc(w*.05,h*.95,180,0,Math.PI*2);c.fill();}
+if(t==="moon"){c.fillStyle="#cfcfd6";c.beginPath();c.arc(w*.15,h*.86,130,0,Math.PI*2);c.fill();}
+if(t==="jupiter"){c.fillStyle="#c47b4e";c.beginPath();c.arc(w*.12,h*.5,190,0,Math.PI*2);c.fill();c.fillStyle="#ba3a2f";c.beginPath();c.ellipse(w*.2,h*.6,40,23,0,0,Math.PI*2);c.fill();}
+if(t==="saturn"){c.fillStyle="#c9ac72";c.beginPath();c.arc(w*.2,h*.4,95,0,Math.PI*2);c.fill();c.strokeStyle="#dddfef88";c.lineWidth=12;c.beginPath();c.ellipse(w*.2,h*.4,170,45,-.2,0,Math.PI*2);c.stroke();}
+if(t==="galacticEdge"){c.strokeStyle="#d4e8ff55";c.lineWidth=18;c.beginPath();c.arc(-110,h*.55,390,-.9,1.1);c.stroke();}
+if(this.g.lv.backgroundTheme==="oort"){const on=this.g.t%(this.g.lv.radarPulseInterval||3000)<(this.g.lv.radarPulseDuration||700);if(on){c.strokeStyle="#79dbff66";c.lineWidth=120;c.beginPath();c.moveTo(-200,h*.65);c.lineTo(w+100,h*.3);c.stroke();}}
+if(this.g.lv.dustCloudRate&&Math.random()<this.g.lv.dustCloudRate*.03){c.fillStyle="#bba7d822";c.fillRect(Math.random()*w,Math.random()*h,w*.25,30+Math.random()*50);} }
+}
+class LevelManager{constructor(g){this.g=g;this.unlocked=Number(localStorage.getItem("etg-unlocked")||1);this.checkpoint=Number(localStorage.getItem("etg-checkpoint")||1)}setLevel(i){this.g.levelIndex=i;this.g.lv=levels[i];this.g.ship.reset();this.g.obs.reset();this.g.score=0;this.g.progress=0;this.g.levelStart=performance.now();this.g.eventDone=0;this.g.eventTimer=0;this.g.stormWarn=0;}
+objectiveText(){const l=this.g.lv,p=this.g.progress;const map={score:`目标：${p}/${l.objectiveValue} 组障碍`,survive:`目标：${Math.floor(p)}/${l.objectiveValue} 秒`,collect:`目标：${p}/${l.objectiveValue} 能源核心`,event:`目标：${p}/${l.objectiveValue} 事件`};return map[l.objectiveType]||"目标"}
+update(dt){const l=this.g.lv;if(l.objectiveType==="survive")this.g.progress+=dt/1000;if(l.objectiveType==="event")this.updateEvent(dt);if(l.objectiveType==="collect")this.g.obs.collect();if(this.g.progress>=l.objectiveValue)this.g.onLevelClear();}
+updateEvent(dt){const l=this.g.lv;this.g.eventTimer+=dt;if(l.eventType==="gravityWave"){if(this.g.eventTimer>20000){this.g.eventTimer=0;this.g.eventDone++;this.g.progress=this.g.eventDone;} this.g.ship.vy+=(Math.sin(this.g.t*.01)*(l.gravityWaveIntensity||.1));}
+if(l.eventType==="storm"){if(this.g.eventTimer> (l.stormInterval||12000)-2000)this.g.stormWarn=1; if(this.g.eventTimer>(l.stormInterval||12000)){this.g.eventTimer=0;this.g.eventDone++;this.g.progress=this.g.eventDone;this.g.ship.vy+=(Math.random()*3-1.5);} else this.g.stormWarn=0;}
+if(l.eventType==="lens"){if(this.g.eventTimer>15000){this.g.eventTimer=0;this.g.eventDone++;this.g.progress=this.g.eventDone;} this.g.ship.vy+=Math.sin(this.g.t*.006)*(l.lensForce||.08);} }
+unlockNext(){this.unlocked=Math.max(this.unlocked,this.g.levelIndex+2);this.checkpoint=Math.max(this.checkpoint,this.g.levelIndex+1);localStorage.setItem("etg-unlocked",this.unlocked);localStorage.setItem("etg-checkpoint",this.checkpoint);} }
+class UIManager{constructor(g){this.g=g;this.el={hud:document.getElementById("hudText"),start:document.getElementById("start"),intro:document.getElementById("levelIntro"),over:document.getElementById("gameOver"),clear:document.getElementById("levelClear"),final:document.getElementById("finalClear")};}
+hideAll(){for(const k in this.el)if(k!=="hud")this.el[k].classList.add("hidden")}show(name){this.hideAll();this.el[name].classList.remove("hidden")}
+updateHUD(){const l=this.g.lv;this.el.hud.innerHTML=`<div>关卡 ${l.id}：${l.name}</div><div>分数：${this.g.score}</div><div>${this.g.levelMgr.objectiveText()}</div><div>存档点：${levels[this.g.levelMgr.checkpoint-1].checkpointName}</div>`}
+}
+class Game{constructor(){this.cv=document.getElementById("game");this.cx=this.cv.getContext("2d");this.w=0;this.h=0;this.maxFall=8;this.t=0;this.state="start";this.levelIndex=0;this.lv=levels[0];this.score=0;this.progress=0;this.best=Number(localStorage.getItem("etg-best")||0);this.ship=new Spaceship(this);this.obs=new ObstacleManager(this);this.bg=new Background(this);this.levelMgr=new LevelManager(this);this.ui=new UIManager(this);this.resize();this.bind();requestAnimationFrame((ts)=>this.loop(ts));}
+bind(){window.addEventListener("resize",()=>this.resize());const act=(e)=>{e.preventDefault();if(this.state==="playing")this.ship.flap();else if(this.state==="levelIntro")this.startPlaying();};this.cv.addEventListener("pointerdown",act);window.addEventListener("keydown",e=>{if(e.code==="Space")act(e)});
+document.getElementById("startBtn").onclick=()=>{this.enterLevel(this.levelMgr.checkpoint-1)};document.getElementById("introBtn").onclick=()=>this.startPlaying();document.getElementById("retryBtn").onclick=()=>this.enterLevel(this.levelMgr.checkpoint-1);document.getElementById("nextBtn").onclick=()=>this.enterLevel(this.levelIndex+1);document.getElementById("restartJourney").onclick=()=>{localStorage.setItem("etg-unlocked",1);localStorage.setItem("etg-checkpoint",1);this.levelMgr.unlocked=1;this.levelMgr.checkpoint=1;this.enterLevel(0)};document.getElementById("freeFlight").onclick=()=>{this.enterLevel(14);this.progress=0;this.lv.objectiveValue=9999};}
+resize(){const ratio=9/16,maxW=Math.min(innerWidth-20,560),maxH=Math.min(innerHeight-20,900);let w=maxW,h=w/ratio;if(h>maxH){h=maxH;w=h*ratio;}const dpr=devicePixelRatio||1;this.cv.width=w*dpr;this.cv.height=h*dpr;this.cv.style.width=w+"px";this.cv.style.height=h+"px";this.cx.setTransform(dpr,0,0,dpr,0,0);this.w=w;this.h=h;this.bg.resize();this.ship.reset();}
+enterLevel(i){if(i>=levels.length){this.state="finalClear";this.ui.show("final");return;}this.levelMgr.setLevel(i);this.state="levelIntro";this.ui.show("intro");document.getElementById("introTitle").textContent=`关卡 ${this.lv.id}：${this.lv.name}`;document.getElementById("introDesc").textContent=this.lv.description;document.getElementById("introObj").textContent=this.levelMgr.objectiveText();}
+startPlaying(){this.state="playing";this.ui.hideAll();this.ship.flap();}
+onGameOver(){this.state="gameOver";this.best=Math.max(this.best,this.score);localStorage.setItem("etg-best",this.best);this.ui.show("over");document.getElementById("goLevel").textContent=`当前关卡：${this.lv.name}`;document.getElementById("goCheckpoint").textContent=`最近存档点：${levels[this.levelMgr.checkpoint-1].checkpointName}`;document.getElementById("goScore").textContent=`本局得分：${this.score}`;document.getElementById("goBest").textContent=`历史最高分：${this.best}`;}
+onLevelClear(){if(this.state!=="playing")return;this.state="levelClear";this.best=Math.max(this.best,this.score);localStorage.setItem("etg-best",this.best);this.levelMgr.unlockNext();if(this.levelIndex===levels.length-1){this.state="finalClear";this.ui.show("final");return;}this.ui.show("clear");document.getElementById("clearTitle").textContent=`${this.lv.name} 突破完成`;document.getElementById("clearCheckpoint").textContent=`新存档点已解锁：${this.lv.checkpointName}`;document.getElementById("clearScore").textContent=`本关得分：${this.score}`;document.getElementById("clearTime").textContent=`本关用时：${((performance.now()-this.levelStart)/1000).toFixed(1)} 秒`;document.getElementById("clearNext").textContent=`下一目标：${levels[this.levelIndex+1].name}`;}
+update(dt){if(this.state!=="playing")return;this.ship.update();this.obs.update(dt);this.levelMgr.update(dt);if(this.obs.collide())this.onGameOver();}
+draw(){this.bg.render(this.cx);this.obs.render(this.cx);this.ship.draw(this.cx);if(this.lv.eventType==="storm"&&this.stormWarn){this.cx.fillStyle="#ff6f6f33";this.cx.fillRect(0,0,this.w,this.h);}this.ui.updateHUD();}
+loop(ts){if(!this.last)this.last=ts;const dt=Math.min(34,ts-this.last);this.last=ts;this.t=ts;this.update(dt);this.draw();requestAnimationFrame((n)=>this.loop(n));}}
+new Game();
+</script>
 </body>
 </html>
